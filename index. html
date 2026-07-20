@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday Popuu! ❤️</title>
+  <!-- Confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --bg-color: #ffe6e9;
+      --card-bg: #ffffff;
+      --primary-color: #ff4b72;
+      --text-color: #2d3748;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 450px;
+      width: 92%;
+      position: relative;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    h1, h2 { margin: 0; color: var(--primary-color); }
+
+    /* STEP 1: TIMER STYLES */
+    .timer-display {
+      font-size: 3.2rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      background: #fff0f3;
+      padding: 1rem 2rem;
+      border-radius: 15px;
+      border: 2px dashed var(--primary-color);
+    }
+
+    /* STEP 2: YES/NO BUTTONS */
+    .btn-container {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      min-height: 80px;
+      position: relative;
+    }
+
+    button, .btn {
+      padding: 0.8rem 1.8rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    .btn-yes {
+      background-color: var(--primary-color);
+      color: white;
+      box-shadow: 0 4px 15px rgba(255, 75, 114, 0.4);
+    }
+
+    .btn-yes:hover { transform: scale(1.05); }
+
+    .btn-no {
+      background-color: #cbd5e0;
+      color: #4a5568;
+      position: absolute;
+      transition: all 0.15s ease-out;
+    }
+
+    /* STEP 3: PHOTO GALLERY SLIDE */
+    .photo-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      width: 100%;
+      max-height: 60vh;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .photo-card {
+      background: #fff0f3;
+      padding: 0.8rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      display: none; /* Revealed 1 by 1 via JavaScript */
+      animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .photo-card img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .caption {
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #4a5568;
+    }
+
+    /* STEP 4: VIRTUAL CAKE & CANDLE BLOWOUT */
+    .cake-container {
+      position: relative;
+      width: 160px;
+      height: 120px;
+      background: #f48fb1;
+      border-radius: 10px 10px 0 0;
+      margin-top: 40px;
+      box-shadow: inset 0 -10px 0 #ec407a;
+    }
+
+    .cake-topping {
+      position: absolute;
+      top: 0;
+      width: 100%;
+      height: 22px;
+      background: #fff;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .candle {
+      position: absolute;
+      top: -30px;
+      width: 12px;
+      height: 30px;
+      background: repeating-linear-gradient(45deg, #fff, #fff 5px, #ff4081 5px, #ff4081 10px);
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    .candle-1 { left: 32px; }
+    .candle-2 { left: 74px; }
+    .candle-3 { left: 116px; }
+
+    .flame {
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 16px;
+      background: #ff9800;
+      border-radius: 50% 50% 20% 20%;
+      box-shadow: 0 0 10px #ffeb3b;
+      animation: flicker 0.6s infinite alternate;
+    }
+
+    .flame.out { display: none; }
+
+    @keyframes flicker {
+      0% { transform: translateX(-50%) scale(1); }
+      100% { transform: translateX(-50%) scale(1.15); }
+    }
+
+    /* STEP 5: FINAL LETTER */
+    .letter-box {
+      background: #fff0f3;
+      padding: 1.5rem;
+      border-radius: 15px;
+      border-left: 5px solid var(--primary-color);
+      text-align: left;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #2d3748;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.03);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Audio element for background music -->
+  <audio id="bg-music" loop>
+    <!-- Romantic instrumental background track -->
+    <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-love-112199.mp3" type="audio/mpeg">
+  </audio>
+
+  <div class="card">
+    
+    <!-- STEP 1: COUNTDOWN TIMER -->
+    <div id="screen-timer" class="screen active">
+      ⏳ <h1>Hold Tight!</h1>
+      <p>Something special is unlocking for you in...</p>
+      <div id="timer" class="timer-display">00:05</div>
+    </div>
+
+    <!-- STEP 2: ARE YOU READY? (RUNAWAY NO BUTTON) -->
+    <div id="screen-ready" class="screen">
+      🎁 <h1>Are you ready for your surprise?</h1>
+      <p>Choose wisely... 😉</p>
+      <div class="btn-container" id="button-box">
+        <button class="btn-yes" onclick="startSurprise()">YES! 😍</button>
+        <button class="btn-no" id="no-btn">No 😜</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: SINGLE SLIDE - 3 ANIMATED PHOTOS -->
+    <div id="screen-photos" class="screen">
+      📸 <h2>Special Moments</h2>
+      
+      <div class="photo-grid">
+        <!-- Photo 1: Kiss on cheek -->
+        <div class="photo-card" id="photo-1">
+          <img src="photo1.jpg" alt="Kiss on cheek">
+          <div class="caption">With you, even the simplest moments feel extra special. ✨</div>
+        </div>
+
+        <!-- Photo 2: Saree & Formal -->
+        <div class="photo-card" id="photo-2">
+          <img src="photo2.jpg" alt="Saree and formal">
+          <div class="caption">Three years of looking this good by your side. 😉❤️</div>
+        </div>
+
+        <!-- Photo 3: Waterfall -->
+        <div class="photo-card" id="photo-3">
+          <img src="photo3.jpg" alt="Waterfall photo">
+          <div class="caption">No matter where life takes us, I’ll always choose you. ❤️</div>
+        </div>
+      </div>
+
+      <button id="photos-next-btn" class="btn-yes" style="display: none; margin-top: 1rem;" onclick="goToScreen('screen-cake')">Make a Wish! 🎂</button>
+    </div>
+
+    <!-- STEP 4: VIRTUAL CAKE & CANDLE BLOWOUT -->
+    <div id="screen-cake" class="screen">
+      🎂 <h1>Make a Wish, Popuu!</h1>
+      <p>Tap on each candle to blow them out 🕯️</p>
+      
+      <div class="cake-container">
+        <div class="cake-topping"></div>
+        <div class="candle candle-1" onclick="blowCandle(1)">
+          <div class="flame" id="flame-1"></div>
+        </div>
+        <div class="candle candle-2" onclick="blowCandle(2)">
+          <div class="flame" id="flame-2"></div>
+        </div>
+        <div class="candle candle-3" onclick="blowCandle(3)">
+          <div class="flame" id="flame-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5: FINAL HEARTFELT LETTER -->
+    <div id="screen-letter" class="screen">
+      💌 <h1>For You, Popuu ❤️</h1>
+      <div class="letter-box">
+        Happy Birthday, popuu. ❤️🎂 Three years with you haven't always been easy, and this year has tested us in ways I never imagined. 🫂 Even when everything felt like it was falling apart, you still chose us, and I'll always be grateful for that. 🤍 Please don't give up on me—I still choose you, today and every day. ♾️❤️ I just hope one day we'll look back at this year and be proud that we never stopped holding on to each other. 🌻✨
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- STAGE SWITCHING LOGIC ---
+    function goToScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    // --- STEP 1: TIMER LOGIC ---
+    let timeLeft = 5;
+    const timerElement = document.getElementById('timer');
+
+    const countdown = setInterval(() => {
+      timeLeft--;
+      let seconds = timeLeft < 10 ? '0' + timeLeft : timeLeft;
+      timerElement.textContent = `00:${seconds}`;
+
+      if (timeLeft <= 0) {
+        clearInterval(countdown);
+        goToScreen('screen-ready');
+      }
+    }, 1000);
+
+    // --- STEP 2: RUNAWAY NO BUTTON LOGIC ---
+    const noBtn = document.getElementById('no-btn');
+    const box = document.getElementById('button-box');
+
+    function dodge() {
+      const boxRect = box.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      const maxX = boxRect.width - btnRect.width;
+      const maxY = boxRect.height - btnRect.height;
+
+      const randomX = Math.floor(Math.random() * maxX) - (boxRect.width / 2) + (btnRect.width / 2);
+      const randomY = Math.floor(Math.random() * maxY) - (boxRect.height / 2) + (btnRect.height / 2);
+
+      noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+    }
+
+    noBtn.addEventListener('mouseover', dodge);
+    noBtn.addEventListener('touchstart', dodge);
+
+    // --- START SURPRISE (MUSIC + POPPING PHOTOS) ---
+    function startSurprise() {
+      // Play romantic music
+      const music = document.getElementById('bg-music');
+      music.play().catch(e => console.log("Audio play blocked by browser"));
+
+      // Go to photo screen
+      goToScreen('screen-photos');
+
+      // Pop photo 1
+      setTimeout(() => {
+        document.getElementById('photo-1').style.display = 'block';
+      }, 500);
+
+      // Pop photo 2 after 1 sec
+      setTimeout(() => {
+        document.getElementById('photo-2').style.display = 'block';
+      }, 1500);
+
+      // Pop photo 3 after 1 sec + show next button
+      setTimeout(() => {
+        document.getElementById('photo-3').style.display = 'block';
+        document.getElementById('photos-next-btn').style.display = 'inline-block';
+      }, 2500);
+    }
+
+    // --- STEP 4: CANDLE BLOWOUT, CONFETTI & 2-SEC DELAY ---
+    let blownOutCount = 0;
+
+    function blowCandle(id) {
+      const flame = document.getElementById(`flame-${id}`);
+      if (!flame.classList.contains('out')) {
+        flame.classList.add('out');
+        blownOutCount++;
+
+        // When all 3 candles are blown out:
+        if (blownOutCount === 3) {
+          // Trigger confetti explosion! 🎉
+          confetti({
+            particleCount: 120,
+            spread: 80,
+            origin: { y: 0.6 }
+          });
+
+          // Wait exactly 2 seconds on the cake screen, then pop out the final message!
+          setTimeout(() => {
+            goToScreen('screen-letter');
+          }, 2000);
+        }
+      }
+    }
+  </script>
+</body>
+</html>
